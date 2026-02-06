@@ -1,6 +1,7 @@
 <?php
 
 namespace Buy_Now_Woo\Admin;
+
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -78,10 +79,123 @@ class Settings extends \WC_Settings_Page {
 	}
 
 	/**
+	 * Output rating banner.
+	 */
+	public function output_rating_banner() {
+		?>
+		<style>
+			.buy-now-rating-banner {
+				margin: 20px 0;
+				background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
+				border-radius: 12px;
+				padding: 25px 30px;
+				color: #fff;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+				border: none;
+				transition: transform 0.3s ease;
+			}
+			.buy-now-rating-banner:hover {
+				transform: translateY(-2px);
+			}
+			.buy-now-rating-banner .banner-content {
+				display: flex;
+				align-items: center;
+			}
+			.buy-now-rating-banner .banner-icon {
+				background: rgba(255,255,255,0.2);
+				width: 60px;
+				height: 60px;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin-right: 20px;
+			}
+			.buy-now-rating-banner .banner-icon span {
+				font-size: 36px;
+				color: #fff;
+				width: 36px;
+				height: 36px;
+			}
+			.buy-now-rating-banner .banner-text h3 {
+				color: #fff;
+				margin: 0 0 5px 0;
+				font-size: 20px;
+				font-weight: 600;
+				line-height: 1.2;
+			}
+			.buy-now-rating-banner .banner-text p {
+				color: rgba(255,255,255,0.9);
+				margin: 0;
+				font-size: 15px;
+			}
+			.buy-now-rating-banner .banner-action a {
+				background: #fff;
+				color: #6e8efb;
+				padding: 12px 25px;
+				border-radius: 8px;
+				text-decoration: none;
+				font-weight: 600;
+				font-size: 15px;
+				transition: all 0.3s ease;
+				display: inline-block;
+			}
+			.buy-now-rating-banner .banner-action a:hover {
+				background: #f0f0f0;
+				transform: scale(1.05);
+				box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+			}
+			@media (max-width: 768px) {
+				.buy-now-rating-banner {
+					flex-direction: column;
+					text-align: center;
+					gap: 20px;
+				}
+				.buy-now-rating-banner .banner-content {
+					flex-direction: column;
+				}
+				.buy-now-rating-banner .banner-icon {
+					margin-right: 0;
+					margin-bottom: 15px;
+				}
+			}
+		</style>
+		<div class="buy-now-rating-banner">
+			<div class="banner-content">
+				<div class="banner-icon">
+					<span class="dashicons dashicons-star-filled"></span>
+				</div>
+				<div class="banner-text">
+					<h3><?php esc_html_e( 'Enjoying Buy Now Button for WooCommerce?', 'buy-now-woo' ); ?></h3>
+					<p>
+						<?php esc_html_e( 'If you find our plugin helpful, please consider leaving a 5-star rating on WordPress.org. It helps us a lot!', 'buy-now-woo' ); ?>
+						
+						
+					</p>
+				</div>
+			</div>
+			<div class="banner-action">
+				<a href="https://wordpress.org/support/plugin/buy-now-woo/reviews/?filter=5#new-post" target="_blank">
+					<?php esc_html_e( 'Give us a rating', 'buy-now-woo' ); ?>
+				</a>
+				
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Output settings.
 	 */
 	public function output_settings() {
 		global $current_section;
+
+		if ( '' === $current_section ) {
+			$this->output_rating_banner();
+		}
 
 		$settings = $this->get_settings( $current_section );
 		\WC_Admin_Settings::output_fields( $settings );
@@ -149,6 +263,24 @@ class Settings extends \WC_Settings_Page {
 			'class'    => 'chosen_select',
 			'default'  => 'before',
 			'options'  => $this->get_positions(),
+		);
+		$settings[] = array(
+			'name'     => esc_html__( 'Button Position (Catalog)', 'buy-now-woo' ),
+			'desc_tip' => esc_html__(
+				'Where the button need to be added in catalog page .. before / after / replace',
+				'buy-now-woo'
+			),
+			'id'       => 'buy_now_woo_single_catelog_position',
+			'type'     => 'select',
+			'class'    => 'chosen_select',
+			'default'  => 'after',
+			'options'  => array(
+				'none'  => esc_html__( 'None', 'buy-now-woo' ),
+				'before'  => esc_html__( 'Before Add To Cart Button', 'buy-now-woo' ),
+				'after'   => esc_html__( 'After Add To Cart Button', 'buy-now-woo' ),
+				'replace' => esc_html__( 'Replace Add To Cart Button', 'buy-now-woo' ),
+
+			),
 		);
 
 		$settings[] = array(

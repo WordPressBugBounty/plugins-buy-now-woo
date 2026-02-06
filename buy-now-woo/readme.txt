@@ -1,9 +1,9 @@
-=== Buy Now Button for WooCommerce ===
+=== Quick Buy Now Button for WooCommerce ===
 Contributors: im_niloy, wpismylife
 Tags: buy now, direct checkout, buy now button, woocommerce checkout, woocommerce quick buy
 Requires at least: 5.9
-Tested up to: 6.8
-Stable tag: 1.1.0
+Tested up to: 6.9
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -11,12 +11,12 @@ Buy Now Button for WooCommerce allowing customers to add products to the cart an
 
 == Description ==
 
-Buy Now for WooCommerce lets you add a Buy Now button to single product pages, enabling customers to skip the cart and go straight to checkout. The button can be positioned before, after, or in place of the Add to Cart button, and is fully customizable from the WooCommerce settings.
+Buy Now for WooCommerce lets you add a Buy Now button to single product & Shop catalog pages, enabling customers to skip the cart and go straight to checkout. The button can be positioned before, after, or in place of the Add to Cart button, and is fully customizable from the WooCommerce settings. [__Plugin Documentation__](https://www.codeixer.com/docs/buy-now-button-for-woocommerce/)
 
-`As of July 5, 2025, this project is maintained by [Codeixer](https://profiles.wordpress.org/im_niloy/).`
+**As of July 5, 2025, this project is maintained by [Codeixer](https://profiles.wordpress.org/im_niloy/).** 
 
 **Key Features:**
-* Add a Buy Now button to single product pages
+* Add a Buy Now button to single product pages & shop catalog
 * Choose button position: before, after, or replace Add to Cart
 * Option to show checkout in a popup or redirect to checkout page
 * Customize button text, style, and colors
@@ -46,12 +46,26 @@ The Buy Now button is designed for simple and variable products.
 
 == Screenshots ==
 
-1. WooCommerce > Settings > Buy Now tab
+1. Shop Catalog page with Buy Now button
 2. Single Product page with Buy Now button
-3. Checkout popup
-4. Order details after checkout
 
 == Changelog ==
+
+= 1.1.3 - 2025-12-30 =
+* Fixed: jQuery error appears if checkout modal is enabled.
+
+
+= 1.1.2 - 2025-12-18 =
+* Added: Button option for catalog pages.
+* Added: Replace popup js with 3rd party jquery for better UX.
+* Improve functions for better output.
+
+= 1.1.1 - 2025-12-16 =
+* Added Codeixer SDK for deactivation survey
+* Added Settings link under plugin name for quick nagivation
+* Fixed: Default Mini cart block not working in single product page.
+* Minify js file
+* Compatibility with WooCommerce 10.x
 
 = 1.1.0 - 2025-07-05 =
 * Maintenance and security improvements

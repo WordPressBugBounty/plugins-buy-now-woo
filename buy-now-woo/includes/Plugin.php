@@ -67,18 +67,56 @@ class Plugin {
 
 			$this->handle_button_positions();
 
+			add_filter( 'woocommerce_loop_add_to_cart_link', array( $this, 'handle_catalog_button_positions' ), 20, 3 );
+
 			add_action( 'wsb_before_add_to_cart', array( $this, 'reset_cart' ), 10 );
-			add_filter( 'woocommerce_is_checkout', array( $this, 'woocommerce_is_checkout' ) );
+			// add_filter( 'woocommerce_is_checkout', array( $this, 'woocommerce_is_checkout' ) );
 			add_shortcode( 'buy_now_woo_button', array( $this, 'add_shortcode_button' ) );
 
 			$this->handle_customize();
 
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ), 20 );
 		}
+		add_action( 'plugin_action_links_' . BUY_NOW_WOO_BASE_FILE, array( $this, 'plugin_row_action_links' ) );
+		add_filter( 'plugin_row_meta', array( $this, 'plugin_row_meta_links' ), 999, 2 );
 
 		add_filter( 'woocommerce_get_settings_pages', array( $this, 'settings_page' ) );
 	}
+	/**
+	 * Add links to plugin's description in plugins table
+	 *
+	 * @param  array  $links Initial list of links.
+	 * @param  string $file  Basename of current plugin.
+	 * @return array
+	 */
+	public function plugin_row_meta_links( $links, $file ) {
+		if ( BUY_NOW_WOO_BASE_FILE !== $file ) {
+			return $links;
+		}
 
+		$cidw_doc     = '<a target="_blank" href="' .  'https://www.codeixer.com/docs/buy-now-button-for-woocommerce/' . '" title="' . __( 'Docs & FAQs', 'buy-now-woo' ) . '">' . __( 'Docs', 'buy-now-woo' ) . '</a>';
+		$cidw_support = '<a style="color:#583fad;font-weight: 600;" target="_blank" href="https://codeixer.com/contact-us/" title="' . __( 'Get help', 'buy-now-woo' ) . '">' . __( 'Support', 'buy-now-woo' ) . '</a>';
+
+		$cidw_review = '<a target="_blank" title="Click here to rate and review this plugin on WordPress.org" href="https://wordpress.org/support/plugin/buy-now-woo/reviews/?filter=5"> Rate this plugin » </a>';
+
+		$links[] = $cidw_doc;
+		$links[] = $cidw_support;
+		$links[] = $cidw_review;
+		return $links;
+	}
+	/**
+	 * links in Plugin Meta
+	 *
+	 * @param  [array] $links
+	 * @return void
+	 */
+	public function plugin_row_action_links( $links ) {
+		$row_meta = array(
+			'settings' => '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=wc_simple_buy_settings' ) . '">Settings</a>',
+
+		);
+		return array_merge( $links, $row_meta );
+	}
 	/**
 	 * Add WC settings.
 	 *
@@ -108,6 +146,34 @@ class Plugin {
 			add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'add_simple_buy_button' ), 5 );
 		}
 	}
+	/**
+	 *
+	 *
+	 * @return void
+	 */
+	public function handle_catalog_button_positions( $add_to_cart_html, $product, $args ) {
+
+		if ( $product->get_type() != 'simple' ) {
+			return $add_to_cart_html;
+		}
+
+		$button_position = get_option( 'buy_now_woo_single_catelog_position', 'after' );
+
+		if ( 'before' === $button_position ) {
+			$before = $this->get_button_html();
+			return $before . $add_to_cart_html;
+		} elseif ( 'after' === $button_position ) {
+			$after = $this->get_button_html();
+			return $add_to_cart_html . $after;
+		} elseif ( 'replace' === $button_position ) {
+			$replace = $this->get_button_html();
+			return $replace;
+		}
+		return $add_to_cart_html;
+	}
+
+
+
 
 	/**
 	 * Handle customize.
@@ -120,10 +186,20 @@ class Plugin {
 	 * Enqueue scripts.
 	 */
 	public function enqueue_scripts() {
+		$js_file = ( BUY_NOW_DEV_MODE === true ) ? 'buy-now-woo.js' : 'buy-now-woo-min.js';
+		wp_register_style( 'buy-now-woo-poppup', BUY_NOW_WOO_PLUGIN_URL . 'assets/css/jquery.modal.min.css', array(), BUY_NOW_WOO_VERSION );
 		wp_register_style( 'buy-now-woo', BUY_NOW_WOO_PLUGIN_URL . 'assets/css/buy-now-woo.css', array(), BUY_NOW_WOO_VERSION );
-		wp_register_script( 'buy-now-woo', BUY_NOW_WOO_PLUGIN_URL . 'assets/js/buy-now-woo.js', array( 'jquery' ), BUY_NOW_WOO_VERSION, true );
+		wp_register_script( 'buy-now-woo-poppup', BUY_NOW_WOO_PLUGIN_URL . 'assets/js/jquery.modal.min.js', array( 'jquery' ), BUY_NOW_WOO_VERSION, true );
+		wp_register_script( 'buy-now-woo', BUY_NOW_WOO_PLUGIN_URL . 'assets/js/' . $js_file, array( 'jquery' ), BUY_NOW_WOO_VERSION, true );
+		$button_position = get_option( 'buy_now_woo_single_catelog_position', 'after' );
 
-		if ( is_product() ) {
+		if ( is_product() || ( cdx_is_catalog() && 'none' != $button_position ) ) {
+
+			if ( ! $this->is_redirect() ) {
+				wp_enqueue_script( 'buy-now-woo-poppup' );
+				wp_enqueue_style( 'buy-now-woo-poppup' );
+				wp_enqueue_script( 'wc-checkout' );
+			}
 			wp_enqueue_style( 'buy-now-woo' );
 			wp_enqueue_script( 'buy-now-woo' );
 
@@ -326,6 +402,17 @@ class Plugin {
 	}
 
 	/**
+	 * Get button HTML.
+	 *
+	 * @return string
+	 */
+	public function get_button_html() {
+		ob_start();
+		$this->add_simple_buy_button();
+		return ob_get_clean();
+	}
+
+	/**
 	 * Button template.
 	 *
 	 * @param  array $args arguments.
@@ -358,31 +445,20 @@ class Plugin {
 	 * Add checkout template.
 	 */
 	public function add_checkout_template() {
-		if ( ! is_product() ) {
-			return;
-		}
-		?>
-		<div class="wsb-modal">
-			<div class="wsb-modal-overlay wsb-modal-toggle"></div>
-			<div class="wsb-modal-wrapper wsb-modal-transition">
+		$button_position = get_option( 'buy_now_woo_single_catelog_position', 'after' );
+		if ( is_product() || ( cdx_is_catalog() && 'none' != $button_position ) ) {
+			?>
+			<div class="modal wsb-modal wsb-modal-content" data-modal>
+				
+					<?php do_action( 'wsb_modal_header_content' ); ?>
 
-				<?php do_action( 'wsb_modal_header_content' ); ?>
-
-				<div class="wsb-modal-header">
-					<button class="wsb-modal-close wsb-modal-toggle">
-						<span aria-hidden="true">×</span>
-					</button>
-				</div>
-				<div class="wsb-modal-body">
 					<?php do_action( 'wsb_before_modal_body_content' ); ?>
 
-					<div class="wsb-modal-content"></div>
-
 					<?php do_action( 'wsb_after_modal_body_content' ); ?>
-				</div>
+					
 			</div>
-		</div>
-		<?php
+			<?php
+		}
 	}
 
 	/**
@@ -428,15 +504,14 @@ class Plugin {
 			$results = apply_filters(
 				'wsb_checkout_template',
 				array(
-					'element'      => '.wsb-modal-content',
 					'redirect'     => $this->is_redirect(),
 					'checkout_url' => esc_url( wc_get_checkout_url() ),
 					'template'     => do_shortcode( '[woocommerce_checkout]' ),
-					'method'       => 'html',
+
 				)
 			);
 
-			 wp_send_json_success( $results );
+			wp_send_json_success( $results );
 
 		} catch ( \Exception $e ) {
 			wp_send_json_error( array( 'message' => esc_html( $e->getMessage() ) ) );
